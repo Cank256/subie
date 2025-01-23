@@ -49,7 +49,7 @@ def test_read_item_not_found(
     )
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "Item not found"
+    assert content["detail"] == "Subscription not found"
 
 
 def test_read_item_not_enough_permissions(
@@ -108,7 +108,7 @@ def test_update_item_not_found(
     )
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "Item not found"
+    assert content["detail"] == "Subscription not found"
 
 
 def test_update_item_not_enough_permissions(
@@ -136,7 +136,7 @@ def test_delete_item(
     )
     assert response.status_code == 200
     content = response.json()
-    assert content["message"] == "Item deleted successfully"
+    assert content["message"] == "Subscription deleted successfully"
 
 
 def test_delete_item_not_found(
@@ -148,7 +148,7 @@ def test_delete_item_not_found(
     )
     assert response.status_code == 404
     content = response.json()
-    assert content["detail"] == "Item not found"
+    assert content["detail"] == "Subscription not found"
 
 
 def test_delete_item_not_enough_permissions(

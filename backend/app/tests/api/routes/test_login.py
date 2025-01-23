@@ -85,7 +85,7 @@ def test_reset_password(
     user_query = select(User).where(User.email == settings.FIRST_SUPERUSER)
     user = db.exec(user_query).first()
     assert user
-    assert verify_password(data["new_password"], user.hashed_password)
+    assert verify_password(data["new_password"], user.password_hash)
 
 
 def test_reset_password_invalid_token(
