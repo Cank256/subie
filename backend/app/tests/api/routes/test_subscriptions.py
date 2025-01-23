@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app.core.config import settings
-from app.tests.utils.item import create_random_item
+from backend.app.tests.utils.subscription import create_random_subscription
 
 
 def test_create_item(
