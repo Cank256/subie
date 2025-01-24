@@ -4,16 +4,16 @@ import type { CancelablePromise } from "./core/CancelablePromise"
 import { OpenAPI } from "./core/OpenAPI"
 import { request as __request } from "./core/request"
 import type {
-  ItemsReadItemsData,
-  ItemsReadItemsResponse,
-  ItemsCreateItemData,
-  ItemsCreateItemResponse,
-  ItemsReadItemData,
-  ItemsReadItemResponse,
-  ItemsUpdateItemData,
-  ItemsUpdateItemResponse,
-  ItemsDeleteItemData,
-  ItemsDeleteItemResponse,
+  SubscriptionsReadSubscriptionsData,
+  SubscriptionsReadSubscriptionsResponse,
+  SubscriptionsCreateSubscriptionData,
+  SubscriptionsCreateSubscriptionResponse,
+  SubscriptionsReadSubscriptionData,
+  SubscriptionsReadSubscriptionResponse,
+  SubscriptionsUpdateSubscriptionData,
+  SubscriptionsUpdateSubscriptionResponse,
+  SubscriptionsDeleteSubscriptionData,
+  SubscriptionsDeleteSubscriptionResponse,
   LoginLoginAccessTokenData,
   LoginLoginAccessTokenResponse,
   LoginTestTokenResponse,
@@ -46,22 +46,22 @@ import type {
   UtilsHealthCheckResponse,
 } from "./types.gen"
 
-export class ItemsService {
+export class SubscriptionsService {
   /**
-   * Read Items
-   * Retrieve items.
+   * Read Subscriptions
+   * Retrieve subscriptions.
    * @param data The data for the request.
    * @param data.skip
    * @param data.limit
-   * @returns ItemsPublic Successful Response
+   * @returns SubscriptionsPublic Successful Response
    * @throws ApiError
    */
-  public static readItems(
-    data: ItemsReadItemsData = {},
-  ): CancelablePromise<ItemsReadItemsResponse> {
+  public static readSubscriptions(
+    data: SubscriptionsReadSubscriptionsData = {},
+  ): CancelablePromise<SubscriptionsReadSubscriptionsResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/items/",
+      url: "/api/v1/subscriptions/",
       query: {
         skip: data.skip,
         limit: data.limit,
@@ -73,19 +73,19 @@ export class ItemsService {
   }
 
   /**
-   * Create Item
-   * Create new item.
+   * Create Subscription
+   * Create new subscription.
    * @param data The data for the request.
    * @param data.requestBody
-   * @returns ItemPublic Successful Response
+   * @returns SubscriptionPublic Successful Response
    * @throws ApiError
    */
-  public static createItem(
-    data: ItemsCreateItemData,
-  ): CancelablePromise<ItemsCreateItemResponse> {
+  public static createSubscription(
+    data: SubscriptionsCreateSubscriptionData,
+  ): CancelablePromise<SubscriptionsCreateSubscriptionResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/items/",
+      url: "/api/v1/subscriptions/",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -95,19 +95,19 @@ export class ItemsService {
   }
 
   /**
-   * Read Item
-   * Get item by ID.
+   * Read Subscription
+   * Get subscription by ID.
    * @param data The data for the request.
    * @param data.id
-   * @returns ItemPublic Successful Response
+   * @returns SubscriptionPublic Successful Response
    * @throws ApiError
    */
-  public static readItem(
-    data: ItemsReadItemData,
-  ): CancelablePromise<ItemsReadItemResponse> {
+  public static readSubscription(
+    data: SubscriptionsReadSubscriptionData,
+  ): CancelablePromise<SubscriptionsReadSubscriptionResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/items/{id}",
+      url: "/api/v1/subscriptions/{id}",
       path: {
         id: data.id,
       },
@@ -118,20 +118,20 @@ export class ItemsService {
   }
 
   /**
-   * Update Item
-   * Update an item.
+   * Update Subscription
+   * Update an subscription.
    * @param data The data for the request.
    * @param data.id
    * @param data.requestBody
-   * @returns ItemPublic Successful Response
+   * @returns SubscriptionPublic Successful Response
    * @throws ApiError
    */
-  public static updateItem(
-    data: ItemsUpdateItemData,
-  ): CancelablePromise<ItemsUpdateItemResponse> {
+  public static updateSubscription(
+    data: SubscriptionsUpdateSubscriptionData,
+  ): CancelablePromise<SubscriptionsUpdateSubscriptionResponse> {
     return __request(OpenAPI, {
       method: "PUT",
-      url: "/api/v1/items/{id}",
+      url: "/api/v1/subscriptions/{id}",
       path: {
         id: data.id,
       },
@@ -144,19 +144,19 @@ export class ItemsService {
   }
 
   /**
-   * Delete Item
-   * Delete an item.
+   * Delete Subscription
+   * Delete an subscription.
    * @param data The data for the request.
    * @param data.id
    * @returns Message Successful Response
    * @throws ApiError
    */
-  public static deleteItem(
-    data: ItemsDeleteItemData,
-  ): CancelablePromise<ItemsDeleteItemResponse> {
+  public static deleteSubscription(
+    data: SubscriptionsDeleteSubscriptionData,
+  ): CancelablePromise<SubscriptionsDeleteSubscriptionResponse> {
     return __request(OpenAPI, {
       method: "DELETE",
-      url: "/api/v1/items/{id}",
+      url: "/api/v1/subscriptions/{id}",
       path: {
         id: data.id,
       },
@@ -181,7 +181,7 @@ export class LoginService {
   ): CancelablePromise<LoginLoginAccessTokenResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/login/access-token",
+      url: "/api/v1/auth/access-token",
       formData: data.formData,
       mediaType: "application/x-www-form-urlencoded",
       errors: {
@@ -199,7 +199,7 @@ export class LoginService {
   public static testToken(): CancelablePromise<LoginTestTokenResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/login/test-token",
+      url: "/api/v1/auth/test-token",
     })
   }
 
@@ -216,7 +216,7 @@ export class LoginService {
   ): CancelablePromise<LoginRecoverPasswordResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/password-recovery/{email}",
+      url: "/api/v1/auth/password-recovery/{email}",
       path: {
         email: data.email,
       },
@@ -239,7 +239,7 @@ export class LoginService {
   ): CancelablePromise<LoginResetPasswordResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/reset-password/",
+      url: "/api/v1/auth/reset-password/",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -261,7 +261,7 @@ export class LoginService {
   ): CancelablePromise<LoginRecoverPasswordHtmlContentResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/password-recovery-html-content/{email}",
+      url: "/api/v1/auth/password-recovery-html-content/{email}",
       path: {
         email: data.email,
       },

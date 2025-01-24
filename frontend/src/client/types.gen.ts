@@ -13,24 +13,24 @@ export type HTTPValidationError = {
   detail?: Array<ValidationError>
 }
 
-export type ItemCreate = {
+export type SubscriptionCreate = {
   title: string
   description?: string | null
 }
 
-export type ItemPublic = {
+export type SubscriptionPublic = {
   title: string
   description?: string | null
   id: string
   owner_id: string
 }
 
-export type ItemsPublic = {
-  data: Array<ItemPublic>
+export type SubscriptionsPublic = {
+  data: Array<SubscriptionPublic>
   count: number
 }
 
-export type ItemUpdate = {
+export type SubscriptionUpdate = {
   title?: string | null
   description?: string | null
 }
@@ -100,37 +100,37 @@ export type ValidationError = {
   type: string
 }
 
-export type ItemsReadItemsData = {
+export type SubscriptionsReadSubscriptionsData = {
   limit?: number
   skip?: number
 }
 
-export type ItemsReadItemsResponse = ItemsPublic
+export type SubscriptionsReadSubscriptionsResponse = SubscriptionsPublic
 
-export type ItemsCreateItemData = {
-  requestBody: ItemCreate
+export type SubscriptionsCreateSubscriptionData = {
+  requestBody: SubscriptionCreate
 }
 
-export type ItemsCreateItemResponse = ItemPublic
+export type SubscriptionsCreateSubscriptionResponse = SubscriptionPublic
 
-export type ItemsReadItemData = {
+export type SubscriptionsReadSubscriptionData = {
   id: string
 }
 
-export type ItemsReadItemResponse = ItemPublic
+export type SubscriptionsReadSubscriptionResponse = SubscriptionPublic
 
-export type ItemsUpdateItemData = {
+export type SubscriptionsUpdateSubscriptionData = {
   id: string
-  requestBody: ItemUpdate
+  requestBody: SubscriptionUpdate
 }
 
-export type ItemsUpdateItemResponse = ItemPublic
+export type SubscriptionsUpdateSubscriptionResponse = SubscriptionPublic
 
-export type ItemsDeleteItemData = {
+export type SubscriptionsDeleteSubscriptionData = {
   id: string
 }
 
-export type ItemsDeleteItemResponse = Message
+export type SubscriptionsDeleteSubscriptionResponse = Message
 
 export type LoginLoginAccessTokenData = {
   formData: Body_login_login_access_token

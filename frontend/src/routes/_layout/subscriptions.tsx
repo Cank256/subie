@@ -15,32 +15,32 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect } from "react"
 import { z } from "zod"
 
-import { ItemsService } from "../../client"
-import ActionsMenu from "../../components/Common/ActionsMenu"
-import Navbar from "../../components/Common/Navbar"
-import AddItem from "../../components/Items/AddItem"
+import { SubscriptionsService } from "../../client/index.ts"
+import ActionsMenu from "../../components/Common/ActionsMenu.tsx"
+import Navbar from "../../components/Common/Navbar.tsx"
+import AddSubscription from "../../components/Subscription/AddSubscription.tsx"
 import { PaginationFooter } from "../../components/Common/PaginationFooter.tsx"
 
-const itemsSearchSchema = z.object({
+const subscriptionsSearchSchema = z.object({
   page: z.number().catch(1),
 })
 
 export const Route = createFileRoute("/_layout/items")({
-  component: Items,
-  validateSearch: (search) => itemsSearchSchema.parse(search),
+  component: Subscriptions,
+  validateSearch: (search) => subscriptionsSearchSchema.parse(search),
 })
 
 const PER_PAGE = 5
 
-function getItemsQueryOptions({ page }: { page: number }) {
+function getSubscriptionsQueryOptions({ page }: { page: number }) {
   return {
     queryFn: () =>
-      ItemsService.readItems({ skip: (page - 1) * PER_PAGE, limit: PER_PAGE }),
-    queryKey: ["items", { page }],
+      SubscriptionsService.readSubscriptions({ skip: (page - 1) * PER_PAGE, limit: PER_PAGE }),
+    queryKey: ["subscriptions", { page }],
   }
 }
 
-function ItemsTable() {
+function SubscriptionsTable() {
   const queryClient = useQueryClient()
   const { page } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
@@ -48,20 +48,20 @@ function ItemsTable() {
     navigate({ search: (prev: {[key: string]: string}) => ({ ...prev, page }) })
 
   const {
-    data: items,
+    data: subscriptions,
     isPending,
     isPlaceholderData,
   } = useQuery({
-    ...getItemsQueryOptions({ page }),
+    ...getSubscriptionsQueryOptions({ page }),
     placeholderData: (prevData) => prevData,
   })
 
-  const hasNextPage = !isPlaceholderData && items?.data.length === PER_PAGE
+  const hasNextPage = !isPlaceholderData && subscriptions?.data.length === PER_PAGE
   const hasPreviousPage = page > 1
 
   useEffect(() => {
     if (hasNextPage) {
-      queryClient.prefetchQuery(getItemsQueryOptions({ page: page + 1 }))
+      queryClient.prefetchQuery(getSubscriptionsQueryOptions({ page: page + 1 }))
     }
   }, [page, queryClient, hasNextPage])
 
@@ -89,21 +89,21 @@ function ItemsTable() {
             </Tbody>
           ) : (
             <Tbody>
-              {items?.data.map((item) => (
-                <Tr key={item.id} opacity={isPlaceholderData ? 0.5 : 1}>
-                  <Td>{item.id}</Td>
+              {subscriptions?.data.map((subscription) => (
+                <Tr key={subscription.id} opacity={isPlaceholderData ? 0.5 : 1}>
+                  <Td>{subscription.id}</Td>
                   <Td isTruncated maxWidth="150px">
-                    {item.title}
+                    {subscription.title}
                   </Td>
                   <Td
-                    color={!item.description ? "ui.dim" : "inherit"}
+                    color={!subscription.description ? "ui.dim" : "inherit"}
                     isTruncated
                     maxWidth="150px"
                   >
-                    {item.description || "N/A"}
+                    {subscription.description || "N/A"}
                   </Td>
                   <Td>
-                    <ActionsMenu type={"Item"} value={item} />
+                    <ActionsMenu type={"Subscription"} value={subscription} />
                   </Td>
                 </Tr>
               ))}
@@ -121,15 +121,15 @@ function ItemsTable() {
   )
 }
 
-function Items() {
+function Subscriptions() {
   return (
     <Container maxW="full">
       <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={12}>
-        Items Management
+        Subscriptions Management
       </Heading>
 
-      <Navbar type={"Item"} addModalAs={AddItem} />
-      <ItemsTable />
+      <Navbar type={"Subscription"} addModalAs={AddSubscription} />
+      <SubscriptionsTable />
     </Container>
   )
 }

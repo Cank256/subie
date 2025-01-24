@@ -9,14 +9,14 @@ import {
 import { BsThreeDotsVertical } from "react-icons/bs"
 import { FiEdit, FiTrash } from "react-icons/fi"
 
-import type { ItemPublic, UserPublic } from "../../client"
+import type { SubscriptionPublic, UserPublic } from "../../client"
 import EditUser from "../Admin/EditUser"
-import EditItem from "../Items/EditItem"
+import EditSubscription from "../Subscription/EditSubscription"
 import Delete from "./DeleteAlert"
 
 interface ActionsMenuProps {
   type: string
-  value: ItemPublic | UserPublic
+  value: SubscriptionPublic | UserPublic
   disabled?: boolean
 }
 
@@ -25,7 +25,7 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
   const deleteModal = useDisclosure()
 
   return (
-    <>
+    // <>
       <Menu>
         <MenuButton
           isDisabled={disabled}
@@ -55,8 +55,8 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
             onClose={editUserModal.onClose}
           />
         ) : (
-          <EditItem
-            item={value as ItemPublic}
+          <EditSubscription
+            item={value as SubscriptionPublic}
             isOpen={editUserModal.isOpen}
             onClose={editUserModal.onClose}
           />
@@ -68,7 +68,7 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
           onClose={deleteModal.onClose}
         />
       </Menu>
-    </>
+    // </>
   )
 }
 

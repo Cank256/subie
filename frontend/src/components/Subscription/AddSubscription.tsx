@@ -15,61 +15,54 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
-import {
-  type ApiError,
-  type ItemPublic,
-  type ItemUpdate,
-  ItemsService,
-} from "../../client"
+import { type ApiError, type SubscriptionCreate, SubscriptionsService } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 import { handleError } from "../../utils"
 
-interface EditItemProps {
-  item: ItemPublic
+interface AddSubscriptionProps {
   isOpen: boolean
   onClose: () => void
 }
 
-const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
+const AddSubscription = ({ isOpen, onClose }: AddSubscriptionProps) => {
   const queryClient = useQueryClient()
   const showToast = useCustomToast()
   const {
     register,
     handleSubmit,
     reset,
-    formState: { isSubmitting, errors, isDirty },
-  } = useForm<ItemUpdate>({
+    formState: { errors, isSubmitting },
+  } = useForm<SubscriptionCreate>({
     mode: "onBlur",
     criteriaMode: "all",
-    defaultValues: item,
+    defaultValues: {
+      title: "",
+      description: "",
+    },
   })
 
   const mutation = useMutation({
-    mutationFn: (data: ItemUpdate) =>
-      ItemsService.updateItem({ id: item.id, requestBody: data }),
+    mutationFn: (data: SubscriptionCreate) =>
+      SubscriptionsService.createSubscription({ requestBody: data }),
     onSuccess: () => {
-      showToast("Success!", "Item updated successfully.", "success")
+      showToast("Success!", "Subscription created successfully.", "success")
+      reset()
       onClose()
     },
     onError: (err: ApiError) => {
       handleError(err, showToast)
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["items"] })
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] })
     },
   })
 
-  const onSubmit: SubmitHandler<ItemUpdate> = async (data) => {
+  const onSubmit: SubmitHandler<SubscriptionCreate> = (data) => {
     mutation.mutate(data)
   }
 
-  const onCancel = () => {
-    reset()
-    onClose()
-  }
-
   return (
-    <>
+    // <>
       <Modal
         isOpen={isOpen}
         onClose={onClose}
@@ -78,16 +71,17 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
       >
         <ModalOverlay />
         <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
-          <ModalHeader>Edit Item</ModalHeader>
+          <ModalHeader>Add Subscription</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
-            <FormControl isInvalid={!!errors.title}>
+            <FormControl isRequired isInvalid={!!errors.title}>
               <FormLabel htmlFor="title">Title</FormLabel>
               <Input
                 id="title"
                 {...register("title", {
-                  required: "Title is required",
+                  required: "Title is required.",
                 })}
+                placeholder="Title"
                 type="text"
               />
               {errors.title && (
@@ -104,21 +98,17 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
               />
             </FormControl>
           </ModalBody>
+
           <ModalFooter gap={3}>
-            <Button
-              variant="primary"
-              type="submit"
-              isLoading={isSubmitting}
-              isDisabled={!isDirty}
-            >
+            <Button variant="primary" type="submit" isLoading={isSubmitting}>
               Save
             </Button>
-            <Button onClick={onCancel}>Cancel</Button>
+            <Button onClick={onClose}>Cancel</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </>
+    // </>
   )
 }
 
-export default EditItem
+export default AddSubscription
