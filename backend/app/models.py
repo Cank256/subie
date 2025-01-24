@@ -9,7 +9,7 @@ from datetime import datetime, date
 
 # Shared properties for User
 class UserBase(SQLModel):
-    full_name: Optional[str] = Field(default=None, max_length=255)
+    full_name:  str | None = Field(default=None, max_length=255)
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = Field(default=True)
     is_verified: bool = Field(default=False)
@@ -25,11 +25,12 @@ class UserCreate(UserBase):
 # User Registration for social login
 class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
-    password: Optional[str] = Field(default=None, min_length=8, max_length=40)
-    full_name: Optional[str] = Field(default=None, max_length=255)
+    password: str = Field(min_length=8, max_length=40)
+    full_name: str | None = Field(default=None, max_length=255)
     social_login: bool = Field(default=False)
     social_login_provider: Optional[str] = Field(default=None, max_length=50)
     social_login_id: Optional[str] = Field(default=None, max_length=255)
+    plan_id: Optional[uuid.UUID] = Field(foreign_key="plan.id", default=None, nullable=True)
 
 
 # Properties to receive via API on user update
@@ -53,7 +54,7 @@ class UpdatePassword(SQLModel):
 # Database model for User
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    password_hash: Optional[str] = Field(default=None)
+    password_hash: str
     subscriptions: List["Subscription"] = Relationship(back_populates="user")
     settings: "UserSettings" = Relationship(back_populates="user")
     notifications: List["Notification"] = Relationship(back_populates="user")
@@ -63,6 +64,14 @@ class User(UserBase, table=True):
 # Public properties for User
 class UserPublic(UserBase):
     id: uuid.UUID
+    email: EmailStr
+    full_name: str
+
+
+# Public properties for Users
+class UsersPublic(SQLModel):
+    data: list[UserPublic]
+    count: int
 
 
 # ------------------------------- Plan Models -------------------------------
