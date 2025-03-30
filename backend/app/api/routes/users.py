@@ -20,11 +20,14 @@ from app.models import (
     UserCreate,
     UserPublic,
     UserRegister,
-    UserPublic,
+    UsersPublic,
     UserUpdate,
     UserUpdateMe,
 )
 from app.utils import generate_new_account_email, send_email
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -45,7 +48,7 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     statement = select(User).offset(skip).limit(limit)
     users = session.exec(statement).all()
 
-    return UserPublic(data=users, count=count)
+    return UsersPublic(data=users, count=count)
 
 
 @router.post(
