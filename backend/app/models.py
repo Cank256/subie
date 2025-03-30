@@ -2,7 +2,7 @@ import uuid
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel, Column, JSON
 from typing import Optional, List
-from datetime import datetime, date
+from datetime import datetime
 
 
 # ------------------------------- User Models -------------------------------
@@ -14,6 +14,9 @@ class UserBase(SQLModel):
     is_active: bool = Field(default=True)
     is_verified: bool = Field(default=False)
     is_superuser: bool = Field(default=False)
+    social_login: bool = Field(default=False)
+    social_login_provider: Optional[str] = Field(default=None, max_length=50)
+    social_login_id: Optional[str] = Field(default=None, max_length=255)
     plan_id: Optional[uuid.UUID] = Field(foreign_key="plan.id", default=None, nullable=True)
 
 
@@ -26,7 +29,7 @@ class UserCreate(UserBase):
 class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=40)
-    full_name: str | None = Field(default=None, max_length=255)
+    full_name: Optional[str] = Field(default=None, max_length=255)
     social_login: bool = Field(default=False)
     social_login_provider: Optional[str] = Field(default=None, max_length=50)
     social_login_id: Optional[str] = Field(default=None, max_length=255)
@@ -64,13 +67,14 @@ class User(UserBase, table=True):
 # Public properties for User
 class UserPublic(UserBase):
     id: uuid.UUID
-    email: EmailStr
-    full_name: str
+
+    class Config:
+        orm_mode = True
 
 
 # Public properties for Users
 class UsersPublic(SQLModel):
-    data: list[UserPublic]
+    data: List[UserPublic]
     count: int
 
 
