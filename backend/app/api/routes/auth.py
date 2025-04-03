@@ -41,7 +41,7 @@ def login_access_token(
             user.id, expires_delta=access_token_expires
         ),
         token_type="bearer",
-        expires=access_token_expires
+        expiry=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
 
 

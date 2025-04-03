@@ -264,7 +264,7 @@ class AuditLog(SQLModel):
 class Token(SQLModel):
     access_token: str
     token_type: str = "bearer"
-    expires_at: int
+    expiry: int
 
 
 class TokenPayload(SQLModel):
