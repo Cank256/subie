@@ -28,7 +28,6 @@ class UserBase(SQLModel):
     updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
 
-
 # Properties to receive via API on user creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=40)
@@ -71,11 +70,17 @@ class UpdatePassword(SQLModel):
 
 
 # Database model for User
-class User(UserBase, table=True):
+class User(UserBase):
+    class Config:
+        table = True
+        from_attributes = True
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     password_hash: str
+    preferences: Optional["UserPreferences"] = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={"uselist": False}
+    )
     subscriptions: List["Subscription"] = Relationship(back_populates="user")
-    settings: "UserSettings" = Relationship(back_populates="user")
     notifications: List["Notification"] = Relationship(back_populates="user")
     audit_logs: List["AuditLog"] = Relationship(back_populates="user")
 
@@ -83,9 +88,12 @@ class User(UserBase, table=True):
 # Public properties for User
 class UserPublic(UserBase):
     id: uuid.UUID
+    preferences: Optional["UserPreferencesPublic"] = Field(
+        default=None, alias="preferences"
+    )
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # Public properties for Users
@@ -108,7 +116,9 @@ class PlanBase(SQLModel):
 
 
 # Database model for Plan
-class Plan(PlanBase, table=True):
+class Plan(PlanBase):
+    class Config:
+        table = True
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
 
@@ -141,7 +151,9 @@ class SubscriptionUpdate(SQLModel):
     next_billing_date: datetime | None = None
     updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
-class Subscription(SubscriptionBase, table=True):
+class Subscription(SubscriptionBase):
+    class Config:
+        table = True
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
     user: Optional["User"] = Relationship(back_populates="subscriptions")
@@ -155,12 +167,15 @@ class SubscriptionsPublic(SQLModel):
     count: int
 
 
-# ------------------------------- User Settings Models -------------------------------
+# ------------------------------- User Preferences Models -------------------------------
 
-class UserSettings(SQLModel, table=True):
+class UserPreferences(SQLModel):
+    __tablename__ = "user_preferences"
+    class Config:
+        table = True
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
-    user: User = Relationship(back_populates="settings")
+    user: User = Relationship(back_populates="preferences")
     email_notifications: bool = Field(default=False)
     push_notifications: bool = Field(default=False)
     theme: str = Field(default="system")
@@ -178,9 +193,30 @@ class UserSettings(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
 
+class UserPreferencesPublic(SQLModel):
+    email_notifications: bool
+    push_notifications: bool
+    theme: str
+    language: str
+    time_format: str
+    default_view: str
+    reminder_days: int
+    currency: str
+    show_inactive_suscriptions: bool
+    billing_updates: bool
+    new_features: bool
+    tips: bool
+    newsletter: bool
+
+    class Config:
+        from_attributes = True
+
+
 # ------------------------------- Notification Models -------------------------------
 
-class Notification(SQLModel, table=True):
+class Notification(SQLModel):
+    class Config:
+        table = True
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
     user: User = Relationship(back_populates="notifications")
@@ -196,7 +232,9 @@ class Notification(SQLModel, table=True):
 
 # ------------------------------- Discount Models -------------------------------
 
-class Discount(SQLModel, table=True):
+class Discount(SQLModel):
+    class Config:
+        table = True
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     plan_id: uuid.UUID = Field(foreign_key="plan.id", nullable=False, ondelete="CASCADE")
     name: str = Field(max_length=255)
@@ -211,7 +249,9 @@ class Discount(SQLModel, table=True):
 
 # ------------------------------- Audit Log Models -------------------------------
 
-class AuditLog(SQLModel, table=True):
+class AuditLog(SQLModel):
+    class Config:
+        table = True
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
     user: User = Relationship(back_populates="audit_logs")

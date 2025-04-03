@@ -2,12 +2,15 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import col, delete, func, select
+from sqlmodel import Session, col, delete, func, select
+from sqlalchemy.orm import joinedload
 
 from app import crud
 from app.api.deps import (
     CurrentUser,
     SessionDep,
+    get_current_user,
+    get_db,
     get_current_active_superuser,
 )
 from app.core.config import settings
@@ -22,7 +25,7 @@ from app.models import (
     UserRegister,
     UsersPublic,
     UserUpdate,
-    UserUpdateMe,
+    UserUpdateMe
 )
 from app.utils import generate_new_account_email, send_email
 
@@ -121,10 +124,18 @@ def update_password_me(
 
 
 @router.get("/me", response_model=UserPublic)
-def read_user_me(current_user: CurrentUser) -> Any:
+def read_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Get current user.
     """
+    # Get user with preferences
+    user_with_preferences = session.get(User, current_user.id)
+    
+    # Ensure we have the latest data with preferences included
+    if user_with_preferences:
+        session.refresh(user_with_preferences)
+        return user_with_preferences
+    
     return current_user
 
 
