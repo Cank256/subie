@@ -119,6 +119,7 @@ def upgrade() -> None:
     sa.Column('user_id', sa.Uuid(), nullable=False),
     sa.Column('email_notifications', sa.Boolean(), nullable=False),
     sa.Column('push_notifications', sa.Boolean(), nullable=False),
+    sa.Column('sms_notifications', sa.Boolean(), nullable=False),
     sa.Column('theme', sqlmodel.sql.sqltypes.AutoString(), default='system', nullable=False),
     sa.Column('language', sqlmodel.sql.sqltypes.AutoString(), default='en', nullable=False),
     sa.Column('currency', sqlmodel.sql.sqltypes.AutoString(), default='USD', nullable=False),
