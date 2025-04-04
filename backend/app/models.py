@@ -178,6 +178,7 @@ class UserPreferences(SQLModel):
     user: User = Relationship(back_populates="preferences")
     email_notifications: bool = Field(default=False)
     push_notifications: bool = Field(default=False)
+    sms_notifications: bool = Field(default=False)
     theme: str = Field(default="system")
     language: str = Field(default="en")
     time_format: str = Field(default="24h")
@@ -196,6 +197,7 @@ class UserPreferences(SQLModel):
 class UserPreferencesPublic(SQLModel):
     email_notifications: bool
     push_notifications: bool
+    sms_notifications: bool
     theme: str
     language: str
     time_format: str
