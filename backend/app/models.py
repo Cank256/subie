@@ -24,6 +24,8 @@ class UserBase(SQLModel):
     language: Optional[str] = Field(default=None, max_length=255)
     currency: Optional[str] = Field(default=None, max_length=255)
     plan_id: Optional[uuid.UUID] = Field(foreign_key="plan.id", default=None, nullable=True)
+    plan_start_date: Optional[datetime] = Field(default=None)
+    plan_end_date: Optional[datetime] = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
@@ -106,6 +108,7 @@ class UsersPublic(SQLModel):
 
 # Shared properties for Plan
 class PlanBase(SQLModel):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = Field(index=True, max_length=255)
     description: Optional[str] = Field(default=None, max_length=500)
     price: float = Field(default=0.0)
@@ -120,6 +123,22 @@ class Plan(PlanBase):
     class Config:
         table = True
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+
+# ------------------------------- Payments Models -----------------------------------
+# Database model for Payment
+class PaymentsBase(SQLModel):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    plan_id: uuid.UUID = Field(foreign_key="plan.id", nullable=False)
+    payment_method: str = Field(max_length=255)
+    payment_reference: str = Field(max_length=255, unique=True, nullable=False)
+    amount: float = Field(default=0.0, nullable=False)
+    currency: str = Field(max_length=255, nullable=False)
+    payment_date: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    status: str = Field(max_length=255)
+    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
 
 # ------------------------------- Subscription Models -------------------------------
