@@ -41,6 +41,7 @@ class UserRegister(SQLModel):
     password: str = Field(min_length=8, max_length=40)
     first_name: Optional[str] = Field(default=None, max_length=255)
     last_name: Optional[str] = Field(default=None, max_length=255)
+    avatar_url: Optional[str] = Field(default=None, max_length=255)
     phone: Optional[str] = Field(default=None, max_length=255)
     social_login: bool = Field(default=False)
     social_login_provider: Optional[str] = Field(default=None, max_length=50)
@@ -61,6 +62,21 @@ class UserUpdateMe(SQLModel):
     first_name: Optional[str] = Field(default=None, max_length=255)
     last_name: Optional[str] = Field(default=None, max_length=255)
     email: Optional[EmailStr] = Field(default=None, max_length=255)
+    phone: Optional[str] = Field(default=None, max_length=255)
+    timezone: Optional[str] = Field(default=None, max_length=255)
+    language: Optional[str] = Field(default=None, max_length=255)
+    currency: Optional[str] = Field(default=None, max_length=255)
+    plan_id: Optional[uuid.UUID] = Field(foreign_key="plan.id", default=None, nullable=True)
+    plan_start_date: Optional[datetime] = Field(default=None)
+    plan_end_date: Optional[datetime] = Field(default=None)
+    updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+
+# User plan update for the current user
+class UserUpdatePlan(SQLModel):
+    plan_id: Optional[uuid.UUID] = Field(foreign_key="plan.id", default=None, nullable=True)
+    plan_start_date: Optional[datetime] = Field(default=None)
+    plan_end_date: Optional[datetime] = Field(default=None)
     updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
 
