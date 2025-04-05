@@ -126,7 +126,7 @@ def upgrade() -> None:
     sa.Column('time_format', sqlmodel.sql.sqltypes.AutoString(), default='24h', nullable=False),
     sa.Column('default_view', sqlmodel.sql.sqltypes.AutoString(), default='list', nullable=False),
     sa.Column('reminder_days', sa.Integer(), default=5, nullable=False),
-    sa.Column('show_inactive_suscriptions', sa.Boolean(), default=True, nullable=False),
+    sa.Column('show_inactive_subscriptions', sa.Boolean(), default=True, nullable=False),
     sa.Column('billing_updates', sa.Boolean(), default=True, nullable=False),
     sa.Column('new_features', sa.Boolean(), default=True, nullable=False),
     sa.Column('tips', sa.Boolean(), default=False, nullable=False),

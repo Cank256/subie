@@ -29,20 +29,17 @@ import {
 } from 'lucide-react';
 import useAuth from '@/hooks/useAuth';
 import { useTheme } from '@/contexts/ThemeContext';
-import {  
-  saveUserPreferences 
-} from '@/utils/preferencesUtils';
-import { defaultPreferences, UserPreferences } from '@/client/types.gen';
+import { defaultPreferences, UsersPreferences, UsersPreferencesUpdate } from '@/client/types.gen';
 import { currencies } from '@/utils/profileConstants';
 
 const Preferences = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, saveUserPreferences } = useAuth();
   const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   
   // Preferences state
-  const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
+  const [preferences, setPreferences] = useState<UsersPreferences>(defaultPreferences);
   
   // Fetch user preferences when component mounts
   useEffect(() => {
@@ -54,7 +51,7 @@ const Preferences = () => {
           
           if (userPreferences) {
             // Convert DB format to component format
-            const formattedPrefs: UserPreferences = {
+            const formattedPrefs = {
               theme: userPreferences.theme,
               language: userPreferences.language,
               currency: userPreferences.currency,
@@ -96,20 +93,37 @@ const Preferences = () => {
     }
   }, [preferences.theme, setTheme]);
   
-  const handleChange = (name: string, value: any) => {
-    setPreferences(prev => {
-      const updated = {
-        ...prev,
-        [name]: value
-      };
-      
-      // If theme is being changed, update it immediately
-      if (name === 'theme') {
-        setTheme(value);
-      }
-      
-      return updated;
-    });
+  const handleChange = async (name: string, value: any) => {
+    const { success, error } = await saveUserPreferences({ requestBody: {
+      [name]: value
+    }})
+
+    if (success) {
+      toast({
+        title: "Preferences saved",
+        description: "Your settings have been updated successfully.",
+      });
+
+      setPreferences(prev => {
+        const updated = {
+          ...prev,
+          [name]: value
+        };
+        
+        // If theme is being changed, update it immediately
+        if (name === 'theme') {
+          setTheme(value);
+        }
+        
+        return updated;
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save preferences. Please try again.",
+      });
+    }
   };
   
   const handleSavePreferences = async () => {
@@ -119,7 +133,7 @@ const Preferences = () => {
     
     try {
       // Convert component format to DB format
-      const dbPreferences = {
+      const dbPreferences: UsersPreferencesUpdate = {
               theme: preferences.theme,
               language: preferences.language,
               currency: preferences.currency,
@@ -136,7 +150,7 @@ const Preferences = () => {
               newsletter: preferences.newsletter,
       };
       
-      const { success, error } = await saveUserPreferences(user.id, dbPreferences);
+      const { success, error } = await saveUserPreferences({ requestBody: dbPreferences });
       
       if (success) {
         toast({
@@ -298,7 +312,7 @@ const Preferences = () => {
                     <Label htmlFor="timeFormat">Time Format</Label>
                     <Select 
                       value={preferences.time_format} 
-                      onValueChange={(value) => handleChange('timeFormat', value)}
+                      onValueChange={(value) => handleChange('time_format', value)}
                     >
                       <SelectTrigger id="timeFormat" className="mt-2">
                         <SelectValue placeholder="Select time format" />
@@ -335,7 +349,7 @@ const Preferences = () => {
                   <Switch 
                     id="emailNotifications" 
                     checked={preferences.email_notifications || false}
-                    onCheckedChange={(checked) => handleChange('emailNotifications', checked)}
+                    onCheckedChange={(checked) => handleChange('email_notifications', checked)}
                   />
                 </div>
                 
@@ -349,7 +363,7 @@ const Preferences = () => {
                   <Switch 
                     id="pushNotifications" 
                     checked={preferences.push_notifications || false}
-                    onCheckedChange={(checked) => handleChange('pushNotifications', checked)}
+                    onCheckedChange={(checked) => handleChange('push_notifications', checked)}
                   />
                 </div>
                 
@@ -357,7 +371,7 @@ const Preferences = () => {
                   <Label htmlFor="remindersBefore">Reminders Before Due Date</Label>
                   <Select 
                     value={(preferences.reminder_days || 3).toString()} 
-                    onValueChange={(value) => handleChange('remindersBefore', parseInt(value))}
+                    onValueChange={(value) => handleChange('reminder_days', parseInt(value))}
                   >
                     <SelectTrigger id="remindersBefore" className="mt-2">
                       <SelectValue placeholder="Select days before" />
@@ -395,13 +409,13 @@ const Preferences = () => {
                   <Switch 
                     id="showInactiveSubscriptions" 
                     checked={preferences.show_inactive_subscriptions || false}
-                    onCheckedChange={(checked) => handleChange('showInactiveSubscriptions', checked)}
+                    onCheckedChange={(checked) => handleChange('show_inactive_subscriptions', checked)}
                   />
                 </div>
               </CardContent>
             </Card>
             
-            <Button 
+            {/* <Button 
               onClick={handleSavePreferences} 
               className="w-full md:w-auto"
               disabled={isLoading}
@@ -414,7 +428,7 @@ const Preferences = () => {
                   Save Preferences
                 </>
               )}
-            </Button>
+            </Button> */}
           </div>
           
           <div className="space-y-6">
