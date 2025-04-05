@@ -1,5 +1,6 @@
 import uuid
 from typing import Any
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, col, delete, func, select
@@ -25,7 +26,10 @@ from app.models import (
     UserRegister,
     UsersPublic,
     UserUpdate,
-    UserUpdateMe
+    UserUpdateMe,
+    UserPreferencesUpdate,
+    UserPreferences,
+    UserPreferencesPublic
 )
 from app.utils import generate_new_account_email, send_email
 
@@ -153,6 +157,45 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     session.delete(current_user)
     session.commit()
     return Message(message="User deleted successfully")
+
+
+@router.patch("/me/preferences", response_model=UserPreferencesPublic)
+def update_user_preferences(
+    *, session: SessionDep, preferences_in: UserPreferencesUpdate, current_user: CurrentUser
+) -> Any:
+    """
+    Update current user preferences.
+    """
+    # Get the user with preferences
+    user = session.get(User, current_user.id)
+    
+    # Check if user has preferences
+    if not user.preferences:
+        # Create new preferences
+        preferences_data = preferences_in.model_dump(exclude_unset=True)
+        # Remove user_id if it's provided, as we'll set it to the current user's ID
+        if 'user_id' in preferences_data:
+            del preferences_data['user_id']
+            
+        preferences = UserPreferences(
+            user_id=user.id,
+            **preferences_data
+        )
+        session.add(preferences)
+    else:
+        # Update existing preferences
+        preferences_data = preferences_in.model_dump(exclude_unset=True)
+        # Remove user_id if it's provided, as we don't want to change the owner
+        if 'user_id' in preferences_data:
+            del preferences_data['user_id']
+            
+        for key, value in preferences_data.items():
+            setattr(user.preferences, key, value)
+        user.preferences.updated_at = datetime.utcnow()
+    
+    session.commit()
+    session.refresh(user)
+    return user.preferences
 
 
 @router.post("/signup", response_model=UserPublic)

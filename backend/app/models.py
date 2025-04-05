@@ -220,7 +220,7 @@ class UserPreferences(SQLModel):
     default_view: str = Field(default="list")
     reminder_days: int = Field(default=5)
     currency: str = Field(default="USD")
-    show_inactive_suscriptions: bool = Field(default=True)
+    show_inactive_subscriptions: bool = Field(default=True)
     billing_updates: bool = Field(default=True)
     new_features: bool = Field(default=True)
     tips: bool = Field(default=False)
@@ -230,24 +230,43 @@ class UserPreferences(SQLModel):
 
 
 class UserPreferencesPublic(SQLModel):
-    email_notifications: bool
-    push_notifications: bool
-    sms_notifications: bool
-    theme: str
-    language: str
-    time_format: str
-    default_view: str
-    reminder_days: int
-    currency: str
-    show_inactive_suscriptions: bool
-    billing_updates: bool
-    new_features: bool
-    tips: bool
-    newsletter: bool
+    id: uuid.UUID
+    user_id: uuid.UUID
+    email_notifications: Optional[bool] = Field(default=False)
+    push_notifications: Optional[bool] = Field(default=False)
+    sms_notifications: Optional[bool] = Field(default=False)
+    theme: Optional[str] = Field(default=None, max_length=255)
+    language: Optional[str] = Field(default=None, max_length=255)
+    time_format: Optional[str] = Field(default=None, max_length=255)
+    default_view: Optional[str] = Field(default=None, max_length=255)
+    reminder_days: Optional[int] = Field(default=None)
+    currency: Optional[str] = Field(default=None, max_length=255)
+    show_inactive_subscriptions: Optional[bool] = Field(default=False)
+    billing_updates: Optional[bool] = Field(default=False)
+    new_features: Optional[bool] = Field(default=False)
+    tips: Optional[bool] = Field(default=False)
+    newsletter: Optional[bool] = Field(default=False)
 
     class Config:
         from_attributes = True
 
+
+class UserPreferencesUpdate(SQLModel):
+    user_id: Optional[uuid.UUID] = None
+    email_notifications: Optional[bool] = None
+    push_notifications: Optional[bool] = None
+    sms_notifications: Optional[bool] = None
+    theme: Optional[str] = None
+    language: Optional[str] = None
+    time_format: Optional[str] = None
+    default_view: Optional[str] = None
+    reminder_days: Optional[int] = None
+    currency: Optional[str] = None
+    show_inactive_subscriptions: Optional[bool] = None
+    billing_updates: Optional[bool] = None
+    new_features: Optional[bool] = None
+    tips: Optional[bool] = None
+    newsletter: Optional[bool] = None
 
 # ------------------------------- Notification Models -------------------------------
 
