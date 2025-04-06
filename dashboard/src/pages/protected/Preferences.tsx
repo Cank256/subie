@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import useAuth from '@/hooks/useAuth';
 import { useTheme } from '@/contexts/ThemeContext';
-import { defaultPreferences, UsersPreferences, UsersPreferencesUpdate } from '@/client/types.gen';
+import { defaultPreferences, UsersPreferences } from '@/client/types.gen';
 import { currencies } from '@/utils/profileConstants';
 
 const Preferences = () => {
@@ -123,56 +123,6 @@ const Preferences = () => {
         title: "Error",
         description: "Failed to save preferences. Please try again.",
       });
-    }
-  };
-  
-  const handleSavePreferences = async () => {
-    if (!user) return;
-    
-    setIsLoading(true);
-    
-    try {
-      // Convert component format to DB format
-      const dbPreferences: UsersPreferencesUpdate = {
-              theme: preferences.theme,
-              language: preferences.language,
-              currency: preferences.currency,
-              time_format: preferences.time_format,
-              email_notifications: preferences.email_notifications,
-              push_notifications: preferences.push_notifications,
-              sms_notifications: preferences.sms_notifications,
-              reminder_days: preferences.reminder_days,
-              show_inactive_subscriptions: preferences.show_inactive_subscriptions,
-              default_view: preferences.default_view,
-              billing_updates: preferences.billing_updates,
-              new_features: preferences.new_features,
-              tips: preferences.tips,
-              newsletter: preferences.newsletter,
-      };
-      
-      const { success, error } = await saveUserPreferences({ requestBody: dbPreferences });
-      
-      if (success) {
-        toast({
-          title: "Preferences saved",
-          description: "Your settings have been updated successfully.",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Failed to save preferences",
-          description: (error as any)?.body?.detail || "An error occurred",
-        });
-      }
-    } catch (error: any) {
-      console.error('Error saving preferences:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to save preferences. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
   
