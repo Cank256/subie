@@ -101,6 +101,7 @@ class User(UserBase):
     subscriptions: List["Subscription"] = Relationship(back_populates="user")
     notifications: List["Notification"] = Relationship(back_populates="user")
     audit_logs: List["AuditLog"] = Relationship(back_populates="user")
+    sessions: List["UserSession"] = Relationship(back_populates="user")
 
 
 # Public properties for User
@@ -336,4 +337,59 @@ class NewPassword(SQLModel):
 
 # Generic message
 class Message(SQLModel):
+    message: str
+
+
+# ------------------------------- User Session Models -------------------------------
+
+class UserSession(SQLModel):
+    __tablename__ = "user_sessions"
+    class Config:
+        table = True
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    device_name: str
+    device_type: str
+    device_ip: Optional[str] = None
+    location: Optional[str] = None
+    is_current: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    last_active: datetime = Field(default_factory=datetime.utcnow)
+
+    user: User = Relationship(back_populates="sessions")
+
+class UserSessionsReadResponse(SQLModel):
+    sessions: List[UserSession]
+
+class UserSessionCreate(SQLModel):
+    device_name: str
+    device_type: str
+    device_ip: Optional[str] = None
+    location: Optional[str] = None
+
+class UserSessionUpdateData(SQLModel):
+    device_name: Optional[str] = None
+    device_type: Optional[str] = None
+    device_ip: Optional[str] = None
+    location: Optional[str] = None
+
+class UserSessionUpdate(SQLModel):
+    session_id: uuid.UUID
+    requestBody: UserSessionUpdateData
+
+class UserSessionsCreateData(SQLModel):
+    requestBody: UserSessionCreate
+
+class UserSessionsCreateResponse(SQLModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    device_name: str
+    device_type: str
+    device_ip: Optional[str] = None
+    location: Optional[str]
+    is_current: bool
+    created_at: datetime
+    last_active: datetime
+
+class UserSessionsUpdateCurrentResponse(SQLModel):
     message: str

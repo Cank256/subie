@@ -29,7 +29,13 @@ from app.models import (
     UserUpdateMe,
     UserPreferencesUpdate,
     UserPreferences,
-    UserPreferencesPublic
+    UserPreferencesPublic,
+    UserSession,
+    UserSessionUpdate,
+    UserSessionsReadResponse,
+    UserSessionsCreateResponse,
+    UserSessionsCreateData,
+    UserSessionsCreateResponse,
 )
 from app.utils import generate_new_account_email, send_email
 
@@ -37,6 +43,23 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 router = APIRouter(prefix="/users", tags=["users"])
+user_sessions_router = APIRouter(prefix="/users/user-sessions", tags=["user-sessions"])
+
+
+@router.post("/signup", response_model=UserPublic)
+def register_user(session: SessionDep, user_in: UserRegister) -> Any:
+    """
+    Create new user without the need to be logged in.
+    """
+    user = crud.get_user_by_email(session=session, email=user_in.email)
+    if user:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this email already exists in the system",
+        )
+    user_create = UserCreate.model_validate(user_in)
+    user = crud.create_user(session=session, user_create=user_create)
+    return user
 
 
 @router.get(
@@ -198,20 +221,78 @@ def update_user_preferences(
     return user.preferences
 
 
-@router.post("/signup", response_model=UserPublic)
-def register_user(session: SessionDep, user_in: UserRegister) -> Any:
+@router.get("/user-sessions", response_model=UserSessionsReadResponse)
+def read_user_sessions(
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> Any:
     """
-    Create new user without the need to be logged in.
+    Get all sessions for the current user.
     """
-    user = crud.get_user_by_email(session=session, email=user_in.email)
-    if user:
+    statement = select(UserSession).where(UserSession.user_id == current_user.id)
+    sessions = session.exec(statement).all()
+    return UserSessionsReadResponse(sessions=sessions)
+
+
+@router.post("/user-sessions", response_model=UserSessionsCreateResponse)
+def create_user_session(
+    *,
+    session: SessionDep,
+    session_in: UserSessionsCreateData,
+    current_user: CurrentUser,
+) -> Any:
+    """
+    Create a new session for the current user.
+    """
+    # Set all existing sessions to not current
+    statement = select(UserSession).where(UserSession.user_id == current_user.id)
+    existing_sessions = session.exec(statement).all()
+    for existing_session in existing_sessions:
+        existing_session.is_current = False
+    
+    # Create new session
+    new_session = UserSession(
+        user_id=current_user.id,
+        device_name=session_in.requestBody.device_name,
+        device_type=session_in.requestBody.device_type,
+        device_ip=session_in.requestBody.device_ip,
+        location=session_in.requestBody.location,
+        is_current=True,
+    )
+    session.add(new_session)
+    session.commit()
+    session.refresh(new_session)
+    return new_session
+
+
+@router.put("/user-sessions", response_model=UserSessionsCreateResponse)
+def update_current_session(
+    *,
+    session: SessionDep,
+    session_in: UserSessionUpdate,
+    current_user: CurrentUser,
+) -> Any:
+    """
+    Update the current session for the user.
+    """
+    # Set all sessions to not current
+    statement = select(UserSession).where(UserSession.user_id == current_user.id)
+    existing_sessions = session.exec(statement).all()
+    for existing_session in existing_sessions:
+        existing_session.is_current = False
+    
+    # Set the specified session as current
+    target_session = session.get(UserSession, session_in.session_id)
+    if not target_session or target_session.user_id != current_user.id:
         raise HTTPException(
-            status_code=400,
-            detail="The user with this email already exists in the system",
+            status_code=404,
+            detail="Session not found",
         )
-    user_create = UserCreate.model_validate(user_in)
-    user = crud.create_user(session=session, user_create=user_create)
-    return user
+    target_session.is_current = True
+    session.add(target_session)
+    session.commit()
+    session.refresh(target_session)
+    return target_session
 
 
 @router.get("/{user_id}", response_model=UserPublic)
