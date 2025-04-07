@@ -76,7 +76,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
 @router.get(
     "/",
     dependencies=[Depends(get_current_active_superuser)],
-    response_model=UserPublic,
+    response_model=UsersPublic,
 )
 def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     """
@@ -366,12 +366,22 @@ def delete_user(
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    if user == current_user:
+    
+    # Prevent deletion of admin users
+    if user.is_admin:
         raise HTTPException(
-            status_code=403, detail="Super users are not allowed to delete themselves"
+            status_code=403, detail="Admin users cannot be deleted"
         )
-    statement = delete(Subscription).where(col(Subscription.owner_id) == user_id)
+    
+    # Delete user sessions first
+    statement = delete(UserSession).where(col(UserSession.user_id) == user_id)
     session.exec(statement)  # type: ignore
+    
+    # Delete user subscriptions
+    statement = delete(Subscription).where(col(Subscription.user_id) == user_id)
+    session.exec(statement)  # type: ignore
+    
+    # Now delete the user
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
