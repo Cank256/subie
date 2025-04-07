@@ -94,6 +94,7 @@ def generate_new_account_email(
             "username": username,
             "email": email_to,
             "confirmation_link": settings.FRONTEND_HOST + "/confirm-email/" + token,
+            "setup_password_link": settings.FRONTEND_HOST + "/setup-password/" + token,
             "year": datetime.now().year,
         },
     )

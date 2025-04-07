@@ -106,13 +106,25 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
             detail="The user with this email already exists in the system.",
         )
 
+    # Generate a temporary password if not provided
+    if not user_in.password:
+        import secrets
+        user_in.password = secrets.token_urlsafe(12)
+    
+    # Set requires_password_change to true for users created by an admin
+    user_in.requires_password_change = True
+    
     user = crud.create_user(session=session, user_create=user_in)
+    
     if settings.emails_enabled and user_in.email:
+        confirmation_token = generate_confirmation_token(email=user_in.email)
         email_data = generate_new_account_email(
-            email_to=user_in.email, username=user_in.email, password=user_in.password
+            email_to=user.email, 
+            username=user.email, 
+            token=confirmation_token
         )
         send_email(
-            email_to=user_in.email,
+            email_to=user.email,
             subject=email_data.subject,
             html_content=email_data.html_content,
         )
@@ -380,6 +392,10 @@ def delete_user(
     # Delete user subscriptions
     statement = delete(Subscription).where(col(Subscription.user_id) == user_id)
     session.exec(statement)  # type: ignore
+    
+    # Delete user preferences if they exist
+    if user.preferences:
+        session.delete(user.preferences)
     
     # Now delete the user
     session.delete(user)

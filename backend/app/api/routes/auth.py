@@ -86,7 +86,37 @@ def confirm_email(token: str, session: SessionDep) -> Message:
     user.is_verified = True
     session.add(user)
     session.commit()
-    return Message(message="Email confirmed")
+    
+    # Return a message indicating whether the user needs to change their password
+    if user.requires_password_change:
+        return Message(message="Email confirmed. Password change required.")
+    return Message(message="Email confirmed.")
+
+
+@router.post("/setup-password/")
+def setup_password(session: SessionDep, body: NewPassword) -> Message:
+    """
+    Set up password after email confirmation
+    """
+    email = verify_password_reset_token(token=body.token)
+    if not email:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    user = crud.get_user_by_email(session=session, email=email)
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this email does not exist in the system.",
+        )
+    elif not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    elif not user.is_verified:
+        raise HTTPException(status_code=400, detail="Email not verified")
+    
+    hashed_password = get_password_hash(password=body.new_password)
+    user.password_hash = hashed_password
+    session.add(user)
+    session.commit()
+    return Message(message="Password set up successfully")
 
 
 @router.post("/test-token", response_model=UserPublic)
