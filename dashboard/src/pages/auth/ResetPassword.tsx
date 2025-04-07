@@ -68,42 +68,6 @@ function ResetPassword() {
     setIsLoading(false)
   }
 
-  // const resetPassword = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setIsLoading(true);
-  //   setErrorMessage('');
-
-  //   const token = new URLSearchParams(window.location.search).get("token")
-  //   if (!token) return
-    
-  //   // Get the password value from the form
-  //   const form = e.target as HTMLFormElement;
-  //   const passwordInput = form.querySelector('input[type="password"]') as HTMLInputElement;
-  //   const newPassword = passwordInput.value;
-    
-  //   try {
-  //     await LoginService.resetPassword({
-  //       requestBody: { new_password: newPassword, token: token },
-  //     })
-  //     navigate("/login")
-  //     toast({
-  //       title: 'Password reset succesful',
-  //       description: 'Your password has been reset successfully',
-  //     });
-  //     setIsLoading(false);
-  //   } catch (error: any) {
-  //     // console.error('Login error');
-  //     const error_message = error.body.detail?? '';
-  //     if (error_message) {
-  //       setErrorMessage(error_message);
-  //     }  else {
-  //       setErrorMessage(error.message || 'An error occurred during password reset request');
-  //     }
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
   return (
     <Layout>
     <div className="min-h-screen flex flex-col">

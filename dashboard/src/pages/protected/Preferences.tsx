@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  Save, 
   BellRing, 
   Globe, 
   Moon, 
@@ -35,8 +34,7 @@ import { currencies } from '@/utils/profileConstants';
 const Preferences = () => {
   const { toast } = useToast();
   const { user, saveUserPreferences } = useAuth();
-  const { theme, setTheme } = useTheme();
-  const [isLoading, setIsLoading] = useState(false);
+  const { setTheme } = useTheme();
   
   // Preferences state
   const [preferences, setPreferences] = useState<UsersPreferences>(defaultPreferences);
@@ -45,7 +43,6 @@ const Preferences = () => {
   useEffect(() => {
     const loadPreferences = async () => {
       if (user) {
-        setIsLoading(true);
         try {
           const userPreferences = user.preferences
           
@@ -72,14 +69,13 @@ const Preferences = () => {
           } else {
             setPreferences(defaultPreferences);
           }
-        } catch (error: any) {
+        } catch {
           toast({
             variant: "destructive",
             title: "Error",
             description: "Failed to load preferences. Please try again.",
           });
         }
-        setIsLoading(false);
       }
     };
     
@@ -93,8 +89,8 @@ const Preferences = () => {
     }
   }, [preferences.theme, setTheme]);
   
-  const handleChange = async (name: string, value: any) => {
-    const { success, error } = await saveUserPreferences({ requestBody: {
+  const handleChange = async (name: string, value: string | number | boolean) => {
+    const { success } = await saveUserPreferences({ requestBody: {
       [name]: value
     }})
 
@@ -112,7 +108,7 @@ const Preferences = () => {
         
         // If theme is being changed, update it immediately
         if (name === 'theme') {
-          setTheme(value);
+          setTheme(value as "light" | "dark" | "system");
         }
         
         return updated;

@@ -10,8 +10,26 @@ export const namePattern = {
   message: "Invalid name",
 }
 
+// Define types for form validation rules
+type ValidationRule = {
+  value?: number;
+  message?: string;
+}
+
+type ValidationRules = {
+  [key: string]: ValidationRule | string | ((value: string) => boolean | string);
+}
+
+type FormValues = {
+  password?: string;
+  new_password?: string;
+  [key: string]: unknown;
+}
+
+type ToastFunction = (options: { title: string; description: string; variant: string }) => void;
+
 export const passwordRules = (isRequired = true) => {
-  const rules: any = {
+  const rules: ValidationRules = {
     minLength: {
       value: 8,
       message: "Password must be at least 8 characters",
@@ -32,10 +50,10 @@ export const termsRules = (agreeTerms = false) => {
 }
 
 export const confirmPasswordRules = (
-  getValues: () => any,
+  getValues: () => FormValues,
   isRequired = true,
 ) => {
-  const rules: any = {
+  const rules: ValidationRules = {
     validate: (value: string) => {
       const password = getValues().password || getValues().new_password
       return value === password ? true : "The passwords do not match"
@@ -49,9 +67,9 @@ export const confirmPasswordRules = (
   return rules
 }
 
-export const handleError = (err: ApiError, toast: any) => {
-  const errDetail = (err.body as any)?.detail
-  let errorMessage = errDetail || "Something went wrong."
+export const handleError = (err: ApiError, toast: ToastFunction) => {
+  const errDetail = (err.body as { detail?: string | Array<{ msg: string }> })?.detail
+  let errorMessage = typeof errDetail === 'string' ? errDetail : "Something went wrong."
   if (Array.isArray(errDetail) && errDetail.length > 0) {
     errorMessage = errDetail[0].msg
   }
@@ -61,3 +79,19 @@ export const handleError = (err: ApiError, toast: any) => {
     variant: "destructive",
   })
 }
+
+export const applyTheme = (theme: 'light' | 'dark' | 'system') => {
+  const root = window.document.documentElement;
+  
+  // Remove previous theme classes
+  root.classList.remove('light', 'dark');
+  
+  // Apply the theme
+  if (theme === 'system') {
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    root.classList.add(systemTheme);
+  } else {
+    root.classList.add(theme);
+  }
+};
+

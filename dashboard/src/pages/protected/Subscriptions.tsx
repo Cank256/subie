@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Layout from '@/components/Layout';
 import { Dialog } from "@/components/ui/dialog";
 import SubscriptionCard from '@/components/subscription/SubscriptionCard';
@@ -42,13 +41,7 @@ const Subscriptions = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  useEffect(() => {
-    if (user) {
-      fetchSubscriptions();
-    }
-  }, [user]);
-  
-  const fetchSubscriptions = async () => {
+  const fetchSubscriptions = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -62,25 +55,31 @@ const Subscriptions = () => {
       }
       
       // Transform data to match our Subscription type
-      const formattedData = data.map((sub: any) => ({
+      const formattedData = data.map((sub: Record<string, unknown>) => ({
         ...sub,
-        nextBillingDate: new Date(sub.next_billing_date),
-        createdAt: new Date(sub.created_at),
-        updatedAt: new Date(sub.updated_at),
-      }));
+        nextBillingDate: new Date(sub.next_billing_date as string),
+        createdAt: new Date(sub.created_at as string),
+        updatedAt: new Date(sub.updated_at as string),
+      })) as unknown as Subscription[];
       
       setSubscriptions(formattedData);
-    } catch (error: any) {
-      console.error('Error fetching subscriptions:', error.message);
+    } catch (error: unknown) {
+      console.error('Error fetching subscriptions:', error instanceof Error ? error.message : 'Unknown error');
       toast({
         variant: "destructive",
         title: "Failed to load subscriptions",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+  
+  useEffect(() => {
+    if (user) {
+      fetchSubscriptions();
+    }
+  }, [user, fetchSubscriptions]);
   
   const handleAddSubscription = () => {
     setCurrentSubscription(null);
@@ -109,12 +108,11 @@ const Subscriptions = () => {
         title: "Subscription deleted",
         description: "The subscription has been removed from your list",
       });
-    } catch (error: any) {
-      console.error('Error deleting subscription:', error.message);
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Failed to delete subscription",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
       });
     }
   };
@@ -140,12 +138,11 @@ const Subscriptions = () => {
           ? "The subscription has been activated" 
           : "The subscription has been paused",
       });
-    } catch (error: any) {
-      console.error('Error updating subscription:', error.message);
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Failed to update subscription",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
       });
     }
   };
@@ -226,12 +223,11 @@ const Subscriptions = () => {
           description: `${data.name} has been added to your subscriptions`,
         });
       }
-    } catch (error: any) {
-      console.error('Error saving subscription:', error.message);
+    } catch (error: unknown) {
       toast({
         variant: "destructive",
         title: "Failed to save subscription",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
       });
     } finally {
       setIsAddModalOpen(false);

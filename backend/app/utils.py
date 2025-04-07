@@ -95,12 +95,44 @@ def generate_new_account_email(
             "password": password,
             "email": email_to,
             "link": settings.FRONTEND_HOST,
+            "year": datetime.now().year,
+        },
+    )
+    return EmailData(html_content=html_content, subject=subject)
+
+
+def generate_confirmation_email(
+    email_to: str, username: str, token: str
+) -> EmailData:
+    project_name = settings.PROJECT_NAME
+    subject = f"Email Confirmation for {email_to}"
+    html_content = render_email_template(
+        template_name="email_confirmation_resend.html",
+        context={
+            "project_name": settings.PROJECT_NAME,
+            "email": email_to,
+            "username": username,
+            "confirmation_link": settings.FRONTEND_HOST + "/confirm-email/" + token,
+            "year": datetime.now().year,
         },
     )
     return EmailData(html_content=html_content, subject=subject)
 
 
 def generate_password_reset_token(email: str) -> str:
+    delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
+    now = datetime.now(timezone.utc)
+    expires = now + delta
+    exp = expires.timestamp()
+    encoded_jwt = jwt.encode(
+        {"exp": exp, "nbf": now, "sub": email},
+        settings.SECRET_KEY,
+        algorithm=security.ALGORITHM,
+    )
+    return encoded_jwt
+
+
+def generate_confirmation_token(email: str) -> str:
     delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
     now = datetime.now(timezone.utc)
     expires = now + delta

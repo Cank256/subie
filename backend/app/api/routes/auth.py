@@ -16,6 +16,9 @@ from app.utils import (
     generate_reset_password_email,
     send_email,
     verify_password_reset_token,
+    generate_new_account_email,
+    generate_confirmation_token,
+    generate_confirmation_email,
 )
 
 router = APIRouter(tags=["login"])
@@ -35,6 +38,8 @@ def login_access_token(
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    elif not user.is_verified:
+        raise HTTPException(status_code=400, detail=[{"message": "Email not verified", "email": user.email}])
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return Token(
         access_token=security.create_access_token(
@@ -43,6 +48,45 @@ def login_access_token(
         token_type="bearer",
         expiry=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
+
+
+@router.post("/resend-confirmation")
+def resend_confirmation(session: SessionDep, email: str) -> Message:
+    """
+    Resend confirmation email
+    """
+    user = crud.get_user_by_email(session=session, email=email)
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+    confirmation_token = generate_confirmation_token(email=email)
+    email_data = generate_confirmation_email(
+        email_to=user.email, 
+        username=user.email, 
+        token=confirmation_token
+    )
+    send_email(
+        email_to=user.email,
+        subject=email_data.subject,
+        html_content=email_data.html_content,
+    )
+    return Message(message="Confirmation email sent")
+
+
+@router.post("/confirm-email/{token}")
+def confirm_email(token: str, session: SessionDep) -> Message:
+    """
+    Confirm email
+    """
+    email = verify_password_reset_token(token=token)
+    if not email:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    user = crud.get_user_by_email(session=session, email=email)
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+    user.is_verified = True
+    session.add(user)
+    session.commit()
+    return Message(message="Email confirmed")
 
 
 @router.post("/test-token", response_model=UserPublic)
