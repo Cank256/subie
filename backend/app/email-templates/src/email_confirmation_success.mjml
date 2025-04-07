@@ -1,0 +1,53 @@
+<mjml>
+    <mj-body background-color="#f4f7fa">
+      <mj-section padding="20px 0">
+        <mj-column width="100%">
+          <mj-text align="center" font-size="24px" font-weight="bold" font-family="Helvetica, Arial, sans-serif" color="#333333" padding-bottom="15px">
+            {{ project_name }}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+  
+      <mj-section background-color="#ffffff" padding="30px" border-radius="8px" box-shadow="0 4px 12px rgba(0,0,0,0.05)">
+        <mj-column>
+          <mj-text align="center" font-size="24px" font-weight="bold" color="#333333" font-family="Helvetica, Arial, sans-serif" padding-bottom="15px">
+            Email Confirmed!
+          </mj-text>
+  
+          <mj-text align="center" font-size="16px" color="#555555" font-family="Helvetica, Arial, sans-serif" padding-bottom="15px">
+            Hello, {{username}}
+          </mj-text>
+  
+          <mj-text align="center" font-size="16px" color="#555555" font-family="Helvetica, Arial, sans-serif" padding-bottom="25px">
+            Your email has been successfully confirmed. We're excited to have you with us! Here are some useful resources to get you started:
+          </mj-text>
+  
+          <mj-text align="center" font-size="16px" color="#009688" font-family="Helvetica, Arial, sans-serif" padding-bottom="10px">
+            <a href="{{about_link}}" style="color: #009688; text-decoration: none;">About {{project_name}}</a>
+          </mj-text>
+  
+          <mj-text align="center" font-size="16px" color="#009688" font-family="Helvetica, Arial, sans-serif" padding-bottom="10px">
+            <a href="{{contact_link}}" style="color: #009688; text-decoration: none;">Contact Us</a>
+          </mj-text>
+  
+          <mj-text align="center" font-size="16px" color="#009688" font-family="Helvetica, Arial, sans-serif" padding-bottom="10px">
+            <a href="{{responsible_spending_link}}" style="color: #009688; text-decoration: none;">Responsible Spending</a>
+          </mj-text>
+  
+          <mj-text align="center" font-size="16px" color="#009688" font-family="Helvetica, Arial, sans-serif" padding-bottom="10px">
+            <a href="{{help_center_link}}" style="color: #009688; text-decoration: none;">Help Center</a>
+          </mj-text>
+  
+        </mj-column>
+      </mj-section>
+  
+      <mj-section padding="20px 0">
+        <mj-column>
+          <mj-text align="center" font-size="12px" color="#aaaaaa" font-family="Helvetica, Arial, sans-serif">
+            © {{year}} {{project_name}}. All rights reserved.
+          </mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-body>
+  </mjml>
+  
