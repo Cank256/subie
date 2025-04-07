@@ -37,7 +37,7 @@ from app.models import (
     UserSessionsCreateData,
     UserSessionsCreateResponse,
 )
-from app.utils import generate_new_account_email, send_email
+from app.utils import generate_new_account_email, send_email, generate_confirmation_token
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -59,6 +59,17 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
         )
     user_create = UserCreate.model_validate(user_in)
     user = crud.create_user(session=session, user_create=user_create)
+    confirmation_token = generate_confirmation_token(email=user_in.email)
+    email_data = generate_new_account_email(
+        email_to=user.email, 
+        username=user.email, 
+        token=confirmation_token
+    )
+    send_email(
+        email_to=user.email,
+        subject=email_data.subject,
+        html_content=email_data.html_content,
+    )
     return user
 
 
