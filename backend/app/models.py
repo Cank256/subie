@@ -36,13 +36,13 @@ class UserCreate(UserBase):
     first_name: Optional[str] = Field(default=None, max_length=255)
     last_name: Optional[str ]= Field(default=None, max_length=255)
     is_admin: Optional[bool] = Field(default=False)
-    password: str = Field(min_length=8, max_length=40)
+    password: str = Field(min_length=8, max_length=1500)
 
 
 # User Registration for social login
 class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
-    password: str = Field(min_length=8, max_length=40)
+    password: str = Field(min_length=8, max_length=1500)
     first_name: Optional[str] = Field(default=None, max_length=255)
     last_name: Optional[str] = Field(default=None, max_length=255)
     avatar_url: Optional[str] = Field(default=None, max_length=255)
@@ -57,7 +57,7 @@ class UserRegister(SQLModel):
 # Properties to receive via API on user update
 class UserUpdate(UserBase):
     email: Optional[EmailStr] = Field(default=None, max_length=255)
-    password: Optional[str] = Field(default=None, min_length=8, max_length=40)
+    password: Optional[str] = Field(default=None, min_length=8, max_length=500)
     updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
 
@@ -86,8 +86,8 @@ class UserUpdatePlan(SQLModel):
 
 # Password update for a user
 class UpdatePassword(SQLModel):
-    current_password: str = Field(min_length=8, max_length=40)
-    new_password: str = Field(min_length=8, max_length=40)
+    current_password: str = Field(min_length=8, max_length=500)
+    new_password: str = Field(min_length=8, max_length=500)
     updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
 
@@ -336,7 +336,7 @@ class TokenPayload(SQLModel):
 
 class NewPassword(SQLModel):
     token: str
-    new_password: str = Field(min_length=8, max_length=40)
+    new_password: str = Field(min_length=8, max_length=500)
 
 
 # Generic message

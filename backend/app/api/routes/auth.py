@@ -11,7 +11,7 @@ from app.core import security
 from app.core.config import settings
 from app.core.google_auth import create_google_oauth_flow, verify_google_token
 from app.core.security import get_password_hash
-from app.models import Message, NewPassword, Token, UserPublic, UserRegister
+from app.models import Message, NewPassword, Token, UserPublic, UserRegister, UserCreate
 from app.utils import (
     generate_password_reset_token,
     generate_reset_password_email,
@@ -210,18 +210,39 @@ async def google_login() -> RedirectResponse:
     authorization_url, _ = flow.authorization_url(
         access_type="offline",
         include_granted_scopes="true",
-        prompt="consent",
+        prompt="consent"
     )
     return RedirectResponse(authorization_url)
 
 
 @router.get("/google/callback")
-async def google_callback(request: Request, session: SessionDep) -> Token:
+async def google_callback(request: Request, session: SessionDep) -> RedirectResponse:
     """
     Handle Google OAuth callback
     """
     flow = create_google_oauth_flow()
-    flow.fetch_token(authorization_response=str(request.url))
+    
+    # Get the full URL including query parameters
+    full_url = str(request.url)
+    
+    # For local development, ensure we're using http
+    if "localhost" in request.url.netloc:
+        full_url = full_url.replace("https://", "http://")
+    
+    try:
+        # Set the environment variable for this request
+        import os
+        os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+        
+        # Ignore scope mismatch errors
+        os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
+        
+        flow.fetch_token(authorization_response=full_url)
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to fetch token: {str(e)}"
+        )
     
     credentials = flow.credentials
     id_info = verify_google_token(credentials.id_token)
@@ -231,9 +252,9 @@ async def google_callback(request: Request, session: SessionDep) -> Token:
     
     if not user:
         # Create new user
-        user_data = UserRegister(
+        user_data = UserCreate(
             email=email,
-            password=security.get_password_hash(credentials.id_token),  # Use token as password
+            password=credentials.id_token,  # Use token as password
             first_name=id_info.get("given_name"),
             last_name=id_info.get("family_name"),
             avatar_url=id_info.get("picture"),
@@ -242,7 +263,7 @@ async def google_callback(request: Request, session: SessionDep) -> Token:
             social_login_id=id_info["sub"],
             is_verified=True,  # Google accounts are pre-verified
         )
-        user = crud.create_user(session=session, user_in=user_data)
+        user = crud.create_user(session=session, user_create=user_data)
     elif not user.social_login:
         # Link existing account with Google
         user.social_login = True
@@ -253,10 +274,12 @@ async def google_callback(request: Request, session: SessionDep) -> Token:
         session.commit()
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    return Token(
-        access_token=security.create_access_token(
-            user.id, expires_delta=access_token_expires
-        ),
-        token_type="bearer",
-        expiry=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    access_token = security.create_access_token(
+        user.id, expires_delta=access_token_expires
+    )
+    
+    # Redirect to the frontend with the access token
+    frontend_url = settings.FRONTEND_HOST
+    return RedirectResponse(
+        url=f"{frontend_url}/auth/google/callback?access_token={access_token}"
     )
