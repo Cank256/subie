@@ -26,12 +26,16 @@ class UserBase(SQLModel):
     plan_id: Optional[uuid.UUID] = Field(foreign_key="plan.id", default=None, nullable=True)
     plan_start_date: Optional[datetime] = Field(default=None)
     plan_end_date: Optional[datetime] = Field(default=None)
+    requires_password_change: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
 
 # Properties to receive via API on user creation
 class UserCreate(UserBase):
+    first_name: Optional[str] = Field(default=None, max_length=255)
+    last_name: Optional[str ]= Field(default=None, max_length=255)
+    is_admin: Optional[bool] = Field(default=False)
     password: str = Field(min_length=8, max_length=40)
 
 

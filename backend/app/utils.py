@@ -83,7 +83,7 @@ def generate_reset_password_email(email_to: str, email: str, token: str) -> Emai
 
 
 def generate_new_account_email(
-    email_to: str, username: str, password: str
+    email_to: str, username: str, token: str
 ) -> EmailData:
     project_name = settings.PROJECT_NAME
     subject = f"{project_name} - New account for user {username}"
@@ -92,15 +92,47 @@ def generate_new_account_email(
         context={
             "project_name": settings.PROJECT_NAME,
             "username": username,
-            "password": password,
             "email": email_to,
-            "link": settings.FRONTEND_HOST,
+            "confirmation_link": settings.FRONTEND_HOST + "/confirm-email/" + token,
+            "setup_password_link": settings.FRONTEND_HOST + "/setup-password/" + token,
+            "year": datetime.now().year,
+        },
+    )
+    return EmailData(html_content=html_content, subject=subject)
+
+
+def generate_confirmation_email(
+    email_to: str, username: str, token: str
+) -> EmailData:
+    project_name = settings.PROJECT_NAME
+    subject = f"Email Confirmation for {email_to}"
+    html_content = render_email_template(
+        template_name="email_confirmation_resend.html",
+        context={
+            "project_name": settings.PROJECT_NAME,
+            "email": email_to,
+            "username": username,
+            "confirmation_link": settings.FRONTEND_HOST + "/confirm-email/" + token,
+            "year": datetime.now().year,
         },
     )
     return EmailData(html_content=html_content, subject=subject)
 
 
 def generate_password_reset_token(email: str) -> str:
+    delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
+    now = datetime.now(timezone.utc)
+    expires = now + delta
+    exp = expires.timestamp()
+    encoded_jwt = jwt.encode(
+        {"exp": exp, "nbf": now, "sub": email},
+        settings.SECRET_KEY,
+        algorithm=security.ALGORITHM,
+    )
+    return encoded_jwt
+
+
+def generate_confirmation_token(email: str) -> str:
     delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
     now = datetime.now(timezone.utc)
     expires = now + delta

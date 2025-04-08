@@ -37,7 +37,7 @@ from app.models import (
     UserSessionsCreateData,
     UserSessionsCreateResponse,
 )
-from app.utils import generate_new_account_email, send_email
+from app.utils import generate_new_account_email, send_email, generate_confirmation_token
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -59,13 +59,24 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
         )
     user_create = UserCreate.model_validate(user_in)
     user = crud.create_user(session=session, user_create=user_create)
+    confirmation_token = generate_confirmation_token(email=user_in.email)
+    email_data = generate_new_account_email(
+        email_to=user.email, 
+        username=user.email, 
+        token=confirmation_token
+    )
+    send_email(
+        email_to=user.email,
+        subject=email_data.subject,
+        html_content=email_data.html_content,
+    )
     return user
 
 
 @router.get(
     "/",
     dependencies=[Depends(get_current_active_superuser)],
-    response_model=UserPublic,
+    response_model=UsersPublic,
 )
 def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     """
@@ -95,13 +106,25 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
             detail="The user with this email already exists in the system.",
         )
 
+    # Generate a temporary password if not provided
+    if not user_in.password:
+        import secrets
+        user_in.password = secrets.token_urlsafe(12)
+    
+    # Set requires_password_change to true for users created by an admin
+    user_in.requires_password_change = True
+    
     user = crud.create_user(session=session, user_create=user_in)
+    
     if settings.emails_enabled and user_in.email:
+        confirmation_token = generate_confirmation_token(email=user_in.email)
         email_data = generate_new_account_email(
-            email_to=user_in.email, username=user_in.email, password=user_in.password
+            email_to=user.email, 
+            username=user.email, 
+            token=confirmation_token
         )
         send_email(
-            email_to=user_in.email,
+            email_to=user.email,
             subject=email_data.subject,
             html_content=email_data.html_content,
         )
@@ -355,12 +378,26 @@ def delete_user(
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    if user == current_user:
+    
+    # Prevent deletion of admin users
+    if user.is_admin:
         raise HTTPException(
-            status_code=403, detail="Super users are not allowed to delete themselves"
+            status_code=403, detail="Admin users cannot be deleted"
         )
-    statement = delete(Subscription).where(col(Subscription.owner_id) == user_id)
+    
+    # Delete user sessions first
+    statement = delete(UserSession).where(col(UserSession.user_id) == user_id)
     session.exec(statement)  # type: ignore
+    
+    # Delete user subscriptions
+    statement = delete(Subscription).where(col(Subscription.user_id) == user_id)
+    session.exec(statement)  # type: ignore
+    
+    # Delete user preferences if they exist
+    if user.preferences:
+        session.delete(user.preferences)
+    
+    # Now delete the user
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
