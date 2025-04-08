@@ -21,7 +21,7 @@ export const isStringWithValue = (value: unknown): value is string => {
   return isString(value) && value !== ""
 }
 
-export const isBlob = (value: any): value is Blob => {
+export const isBlob = (value: unknown): value is Blob => {
   return value instanceof Blob
 }
 
@@ -36,8 +36,7 @@ export const isSuccess = (status: number): boolean => {
 export const base64 = (str: string): string => {
   try {
     return btoa(str)
-  } catch (err) {
-    // @ts-ignore
+  } catch {
     return Buffer.from(str).toString("base64")
   }
 }
@@ -76,7 +75,7 @@ const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
   const path = options.url
     .replace("{api-version}", config.VERSION)
     .replace(/{(.*?)}/g, (substring: string, group: string) => {
-      if (options.path?.hasOwnProperty(group)) {
+      if (options.path && Object.prototype.hasOwnProperty.call(options.path, group)) {
         return encoder(String(options.path[group]))
       }
       return substring
@@ -132,15 +131,17 @@ export const getHeaders = async <T>(
   options: ApiRequestOptions<T>,
 ): Promise<Record<string, string>> => {
   const [token, username, password, additionalHeaders] = await Promise.all([
-    // @ts-ignore
+    // @ts-expect-error - config.TOKEN type is not compatible with resolve parameters
     resolve(options, config.TOKEN),
-    // @ts-ignore
+    // @ts-expect-error - config.USERNAME type is not compatible with resolve parameters
     resolve(options, config.USERNAME),
-    // @ts-ignore
+    // @ts-expect-error - config.PASSWORD type is not compatible with resolve parameters
     resolve(options, config.PASSWORD),
-    // @ts-ignore
+    // @ts-expect-error - config.HEADERS type is not compatible with resolve parameters
     resolve(options, config.HEADERS),
   ])
+
+  // const auth_token = localStorage.getItem('subie-token');
 
   const headers = Object.entries({
     Accept: "application/json",
@@ -159,6 +160,10 @@ export const getHeaders = async <T>(
   if (isStringWithValue(token)) {
     headers["Authorization"] = `Bearer ${token}`
   }
+
+  // if (auth_token) {
+  //   headers['Authorization'] = `Bearer ${auth_token}`;
+  // }
 
   if (isStringWithValue(username) && isStringWithValue(password)) {
     const credentials = base64(`${username}:${password}`)
@@ -308,7 +313,7 @@ export const catchErrorCodes = (
     const errorBody = (() => {
       try {
         return JSON.stringify(result.body, null, 2)
-      } catch (e) {
+      } catch {
         return undefined
       }
     })()
@@ -378,7 +383,7 @@ export const request = <T>(
 
         catchErrorCodes(options, result)
 
-        resolve(result.body)
+        resolve(result.body as T)
       }
     } catch (error) {
       reject(error)

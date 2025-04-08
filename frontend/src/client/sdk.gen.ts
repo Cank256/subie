@@ -23,6 +23,8 @@ import type {
   LoginResetPasswordResponse,
   LoginRecoverPasswordHtmlContentData,
   LoginRecoverPasswordHtmlContentResponse,
+  LoginConfirmEmailData,
+  LoginConfirmEmailResponse,
   UsersReadUsersData,
   UsersReadUsersResponse,
   UsersCreateUserData,
@@ -39,12 +41,25 @@ import type {
   UsersReadUserByIdResponse,
   UsersUpdateUserData,
   UsersUpdateUserResponse,
+  UsersPreferencesUpdateData,
+  UsersPreferencesUpdateResponse,
   UsersDeleteUserData,
   UsersDeleteUserResponse,
   UtilsTestEmailData,
   UtilsTestEmailResponse,
   UtilsHealthCheckResponse,
+  UserSessionsUpdateCurrentSessionData,
+  UserSessionsUpdateCurrentSessionResponse,
+  UserSessionsCreateUserSessionData,
+  UserSessionsCreateUserSessionResponse,
+  UserSessionsReadUserSessionsResponse,
+  LoginResendConfirmationData,
+  LoginResendConfirmationResponse,
+  LoginSetupPasswordData,
+  LoginSetupPasswordResponse,
 } from "./types.gen"
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export class SubscriptionsService {
   /**
@@ -61,7 +76,7 @@ export class SubscriptionsService {
   ): CancelablePromise<SubscriptionsReadSubscriptionsResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/subscriptions/",
+      url: API_URL + "/api/v1/subscriptions/",
       query: {
         skip: data.skip,
         limit: data.limit,
@@ -85,7 +100,7 @@ export class SubscriptionsService {
   ): CancelablePromise<SubscriptionsCreateSubscriptionResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/subscriptions/",
+      url: API_URL + "/api/v1/subscriptions/",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -107,7 +122,7 @@ export class SubscriptionsService {
   ): CancelablePromise<SubscriptionsReadSubscriptionResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/subscriptions/{id}",
+      url: API_URL + "/api/v1/subscriptions/{id}",
       path: {
         id: data.id,
       },
@@ -131,7 +146,7 @@ export class SubscriptionsService {
   ): CancelablePromise<SubscriptionsUpdateSubscriptionResponse> {
     return __request(OpenAPI, {
       method: "PUT",
-      url: "/api/v1/subscriptions/{id}",
+      url: API_URL + "/api/v1/subscriptions/{id}",
       path: {
         id: data.id,
       },
@@ -156,7 +171,7 @@ export class SubscriptionsService {
   ): CancelablePromise<SubscriptionsDeleteSubscriptionResponse> {
     return __request(OpenAPI, {
       method: "DELETE",
-      url: "/api/v1/subscriptions/{id}",
+      url: API_URL + "/api/v1/subscriptions/{id}",
       path: {
         id: data.id,
       },
@@ -181,7 +196,7 @@ export class LoginService {
   ): CancelablePromise<LoginLoginAccessTokenResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/auth/access-token",
+      url: API_URL + "/api/v1/auth/access-token",
       formData: data.formData,
       mediaType: "application/x-www-form-urlencoded",
       errors: {
@@ -199,7 +214,7 @@ export class LoginService {
   public static testToken(): CancelablePromise<LoginTestTokenResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/auth/test-token",
+      url: API_URL + "/api/v1/auth/test-token",
     })
   }
 
@@ -216,7 +231,7 @@ export class LoginService {
   ): CancelablePromise<LoginRecoverPasswordResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/auth/password-recovery/{email}",
+      url: API_URL + "/api/v1/auth/password-recovery/{email}",
       path: {
         email: data.email,
       },
@@ -239,7 +254,7 @@ export class LoginService {
   ): CancelablePromise<LoginResetPasswordResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/auth/reset-password/",
+      url: API_URL + "/api/v1/auth/reset-password/",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -261,10 +276,73 @@ export class LoginService {
   ): CancelablePromise<LoginRecoverPasswordHtmlContentResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/auth/password-recovery-html-content/{email}",
+      url: API_URL + "/api/v1/auth/password-recovery-html-content/{email}",
       path: {
         email: data.email,
       },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Resend Confirmation
+   * Resend confirmation email
+   * @param data The data for the request.
+   * @param data.email
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static resendConfirmation(
+    data: LoginResendConfirmationData,
+  ): CancelablePromise<LoginResendConfirmationResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: API_URL + "/api/v1/auth/resend-confirmation",
+      query: {
+        email: data.email,
+      },
+      mediaType: "application/json",
+    })
+  }
+
+  /**
+   * Confirm Email
+   * Confirm email
+   * @param data The data for the request.
+   * @param data.token
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static confirmEmail(
+    data: LoginConfirmEmailData,
+  ): CancelablePromise<LoginConfirmEmailResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: API_URL + "/api/v1/auth/confirm-email/{token}",
+      path: {
+        token: data.token,
+      },
+    })
+  }
+
+  /**
+   * Setup Password
+   * Setup password
+   * @param data The data for the request.
+   * @param data.token
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static setupPassword(
+    data: LoginSetupPasswordData,
+  ): CancelablePromise<LoginSetupPasswordResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: API_URL + "/api/v1/auth/setup-password",
+      body: data,
+      mediaType: "application/json",
       errors: {
         422: "Validation Error",
       },
@@ -287,7 +365,7 @@ export class UsersService {
   ): CancelablePromise<UsersReadUsersResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/users/",
+      url: API_URL + "/api/v1/users/",
       query: {
         skip: data.skip,
         limit: data.limit,
@@ -311,7 +389,7 @@ export class UsersService {
   ): CancelablePromise<UsersCreateUserResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/users/",
+      url: API_URL + "/api/v1/users/",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -321,15 +399,15 @@ export class UsersService {
   }
 
   /**
-   * Read User Me
+   * Read User Profile
    * Get current user.
-   * @returns UserPublic Successful Response
+   * @returns UserProfile Successful Response
    * @throws ApiError
    */
-  public static readUserMe(): CancelablePromise<UsersReadUserMeResponse> {
+  public static readUserProfile(): CancelablePromise<UsersReadUserMeResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/users/me",
+      url: API_URL + "/api/v1/users/me",
     })
   }
 
@@ -342,7 +420,7 @@ export class UsersService {
   public static deleteUserMe(): CancelablePromise<UsersDeleteUserMeResponse> {
     return __request(OpenAPI, {
       method: "DELETE",
-      url: "/api/v1/users/me",
+      url: API_URL + "/api/v1/users/me",
     })
   }
 
@@ -359,7 +437,7 @@ export class UsersService {
   ): CancelablePromise<UsersUpdateUserMeResponse> {
     return __request(OpenAPI, {
       method: "PATCH",
-      url: "/api/v1/users/me",
+      url: API_URL + "/api/v1/users/me",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -381,7 +459,7 @@ export class UsersService {
   ): CancelablePromise<UsersUpdatePasswordMeResponse> {
     return __request(OpenAPI, {
       method: "PATCH",
-      url: "/api/v1/users/me/password",
+      url: API_URL + "/api/v1/users/me/password",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -403,7 +481,7 @@ export class UsersService {
   ): CancelablePromise<UsersRegisterUserResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/users/signup",
+      url: API_URL + "/api/v1/users/signup",
       body: data.requestBody,
       mediaType: "application/json",
       errors: {
@@ -425,7 +503,7 @@ export class UsersService {
   ): CancelablePromise<UsersReadUserByIdResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/users/{user_id}",
+      url: API_URL + "/api/v1/users/{user_id}",
       path: {
         user_id: data.userId,
       },
@@ -449,7 +527,7 @@ export class UsersService {
   ): CancelablePromise<UsersUpdateUserResponse> {
     return __request(OpenAPI, {
       method: "PATCH",
-      url: "/api/v1/users/{user_id}",
+      url: API_URL + "/api/v1/users/{user_id}",
       path: {
         user_id: data.userId,
       },
@@ -474,10 +552,95 @@ export class UsersService {
   ): CancelablePromise<UsersDeleteUserResponse> {
     return __request(OpenAPI, {
       method: "DELETE",
-      url: "/api/v1/users/{user_id}",
+      url: API_URL + "/api/v1/users/{user_id}",
       path: {
         user_id: data.userId,
       },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Update User Preferences
+   * Update own user preferences.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns UserPublic Successful Response
+   * @throws ApiError
+   */
+  public static updateUserPreferences(
+    data: UsersPreferencesUpdateData,
+  ): CancelablePromise<UsersPreferencesUpdateResponse> {
+    return __request(OpenAPI, {
+      method: "PATCH",
+      url: API_URL + "/api/v1/users/me/preferences",
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+}
+
+export class UserSessionsService {
+  /**
+   * Update Current Session
+   * Update the current session for a user.
+   * @param data The data for the request.
+   * @param data.userId
+   * @param data.isCurrent
+   * @returns Message Successful Response
+   * @throws ApiError
+   */ 
+  public static updateCurrentSession(
+    data: UserSessionsUpdateCurrentSessionData,
+  ): CancelablePromise<UserSessionsUpdateCurrentSessionResponse> {
+    return __request(OpenAPI, {
+      method: "PUT",
+      url: API_URL + "/api/v1/users/user-sessions",
+      body: data,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Create User Session
+   * Create a new user session.
+   * @param data The data for the request.
+   * @param data.requestBody
+   * @returns UserSessionPublic Successful Response
+   * @throws ApiError
+   */
+  public static createUserSession(
+    data: UserSessionsCreateUserSessionData,
+  ): CancelablePromise<UserSessionsCreateUserSessionResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: API_URL + "/api/v1/users/user-sessions",
+      body: data,
+      mediaType: "application/json",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  /**
+   * Read User Sessions
+   * Get all user sessions.
+   * @returns UserSessionPublic Successful Response
+   * @throws ApiError
+   */
+  public static readUserSessions(): CancelablePromise<UserSessionsReadUserSessionsResponse> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: API_URL + "/api/v1/users/user-sessions",
       errors: {
         422: "Validation Error",
       },
@@ -499,7 +662,7 @@ export class UtilsService {
   ): CancelablePromise<UtilsTestEmailResponse> {
     return __request(OpenAPI, {
       method: "POST",
-      url: "/api/v1/utils/test-email/",
+      url: API_URL + "/api/v1/utils/test-email/",
       query: {
         email_to: data.emailTo,
       },
@@ -517,7 +680,7 @@ export class UtilsService {
   public static healthCheck(): CancelablePromise<UtilsHealthCheckResponse> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/v1/utils/health-check/",
+      url: API_URL + "/api/v1/utils/health-check/",
     })
   }
 }

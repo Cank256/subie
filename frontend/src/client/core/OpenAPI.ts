@@ -46,7 +46,7 @@ export const OpenAPI: OpenAPIConfig = {
   ENCODE_PATH: undefined,
   HEADERS: undefined,
   PASSWORD: undefined,
-  TOKEN: undefined,
+  TOKEN: localStorage.getItem("subie-token") || undefined,
   USERNAME: undefined,
   VERSION: "0.1.0",
   WITH_CREDENTIALS: false,
@@ -54,4 +54,14 @@ export const OpenAPI: OpenAPIConfig = {
     request: new Interceptors(),
     response: new Interceptors(),
   },
+}
+
+export const setOpenAPIToken = (token: string | null) => {
+  if (token) {
+    localStorage.setItem("subie-token", token);
+    OpenAPI.TOKEN = token;
+  } else {
+    localStorage.removeItem("subie-token");
+    OpenAPI.TOKEN = undefined;
+  }
 }

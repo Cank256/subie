@@ -13,6 +13,23 @@ export type HTTPValidationError = {
   detail?: Array<ValidationError>
 }
 
+export type Notification = {
+  id: string;
+  type: 'payment' | 'reminder' | 'renewal' | 'price_change' | 'system';
+  title: string;
+  description: string;
+  date: Date;
+  read: boolean;
+  action_url?: string | null;
+  action_text?: string | null;
+  created_at: Date;
+};
+
+export interface NotificationItemProps {
+  notification: Notification;
+  onMarkAsRead: (id: string) => void;
+}
+
 export type SubscriptionCreate = {
   title: string
   description?: string | null
@@ -46,6 +63,7 @@ export type NewPassword = {
 
 export type Token = {
   access_token: string
+  expiry: number
   token_type?: string
 }
 
@@ -54,26 +72,103 @@ export type UpdatePassword = {
   new_password: string
 }
 
+export type Session = {
+  id: string;
+  user_id: string;
+  device_name: string;
+  device_type: string;
+  location?: string;
+  device_ip?: string;
+  is_current: boolean;
+  created_at: string;
+  last_active: string;
+}
+
 export type UserCreate = {
   email: string
   is_active?: boolean
   is_superuser?: boolean
-  full_name?: string | null
+  first_name?: string | null
+  last_name?: string | null
   password: string
 }
 
 export type UserPublic = {
-  email: string
-  is_active?: boolean
-  is_superuser?: boolean
-  full_name?: string | null
-  id: string
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  email: string;
+  phone: string | null;
+  plan_id: string | null;
+  is_active: boolean;
+  is_verified: boolean;
+  is_admin: boolean;
+  social_login: boolean;
+  timezone?: string | null;
+  language?: string | null;
+  currency?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  preferences?: UsersPreferences;
+}
+
+export type UsersPreferences = {
+  email_notifications?: boolean | null;
+  push_notifications?: boolean | null;
+  sms_notifications?: boolean | null;
+  theme?: 'light' | 'dark' | 'system';
+  language?: string | null;
+  time_format?: '12h' | '24h';
+  default_view?: 'list' | 'grid' | 'calendar';
+  reminder_days?: number | null;
+  currency?: string | null;
+  show_inactive_subscriptions?: boolean | null;
+  billing_updates?: boolean | null;
+  new_features?: boolean | null;
+  tips?: boolean | null;
+  newsletter?: boolean | null;
+}
+
+export const defaultPreferences: UsersPreferences = {
+  theme: 'system',
+  currency: 'USD',
+  time_format: '24h',
+  email_notifications: false,
+  push_notifications: false,
+  sms_notifications: false,
+  reminder_days: 3,
+  show_inactive_subscriptions: false,
+  default_view: 'grid',
+  newsletter: false,
+  tips: false,
+  billing_updates: false,
+  new_features: false,
+  language: 'en',
+}
+
+export type UsersPreferencesUpdate = {
+  email_notifications?: boolean | null;
+  push_notifications?: boolean | null;
+  sms_notifications?: boolean | null;
+  theme?: 'light' | 'dark' | 'system';
+  language?: string | null;
+  time_format?: '12h' | '24h';
+  default_view?: 'list' | 'grid' | 'calendar';
+  reminder_days?: number | null;
+  currency?: string | null;
+  show_inactive_subscriptions?: boolean | null;
+  billing_updates?: boolean | null;
+  new_features?: boolean | null;
+  tips?: boolean | null;
+  newsletter?: boolean | null;
 }
 
 export type UserRegister = {
   email: string
   password: string
-  full_name?: string | null
+  first_name?: string | null
+  last_name?: string | null
 }
 
 export type UsersPublic = {
@@ -84,14 +179,29 @@ export type UsersPublic = {
 export type UserUpdate = {
   email?: string | null
   is_active?: boolean
-  is_superuser?: boolean
-  full_name?: string | null
+  is_admin?: boolean
+  first_name?: string | null
+  last_name?: string | null
+  avatar_url?: string | null
+  phone?: string | null
+  plan_id?: string | null
+  is_verified?: boolean
+  timezone?: string | null
+  language?: string | null
+  currency?: string | null
   password?: string | null
 }
 
 export type UserUpdateMe = {
-  full_name?: string | null
+  first_name?: string | null
+  last_name?: string | null
   email?: string | null
+  avatar_url?: string | null
+  phone?: string | null
+  timezone?: string | null
+  language?: string | null
+  currency?: string | null
+  password?: string | null
 }
 
 export type ValidationError = {
@@ -158,6 +268,25 @@ export type LoginRecoverPasswordHtmlContentData = {
 
 export type LoginRecoverPasswordHtmlContentResponse = string
 
+export type LoginResendConfirmationData = {
+  email: string
+}
+
+export type LoginResendConfirmationResponse = Message
+
+export type LoginConfirmEmailData = {
+  token: string
+}
+
+export type LoginConfirmEmailResponse = Message
+
+export type LoginSetupPasswordData = {
+  token: string
+  new_password: string
+}
+
+export type LoginSetupPasswordResponse = Message
+
 export type UsersReadUsersData = {
   limit?: number
   skip?: number
@@ -204,6 +333,12 @@ export type UsersUpdateUserData = {
   userId: string
 }
 
+export type UsersPreferencesUpdateData = {
+  requestBody: UsersPreferencesUpdate
+}
+
+export type UsersPreferencesUpdateResponse = UserPublic
+
 export type UsersUpdateUserResponse = UserPublic
 
 export type UsersDeleteUserData = {
@@ -219,3 +354,57 @@ export type UtilsTestEmailData = {
 export type UtilsTestEmailResponse = Message
 
 export type UtilsHealthCheckResponse = boolean
+
+export interface UserSessionsUpdateCurrentSessionData {
+  session_id: string;
+  requestBody: {
+    user_id: string;
+    is_current: boolean;
+  };
+}
+
+export interface UserSessionsUpdateCurrentSessionResponse {
+  message: string;
+}
+
+export interface UserSessionsCreateUserSessionData {
+  requestBody: {
+    user_id: string;
+    device_name: string;
+    device_type: string;
+    location?: string;
+    device_ip?: string;
+  };
+}
+
+export interface UserSessionsCreateUserSessionResponse {
+  id: string;
+  user_id: string;
+  device_name: string;
+  device_type: string;
+  location?: string;
+  is_current: boolean;
+  created_at: string;
+  last_active: string;
+}
+
+export interface UserSessionsReadUserSessionsResponse {
+  sessions: Array<{
+    id: string;
+    user_id: string;
+    device_name: string;
+    device_type: string;
+    location?: string;
+    is_current: boolean;
+    created_at: string;
+    last_active: string;
+  }>;
+}
+
+export interface UserSessionsReadUserSessionsData {
+  requestBody: {
+    user_id: string;
+  };
+}
+
+
